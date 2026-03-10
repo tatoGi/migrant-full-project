@@ -1,0 +1,199 @@
+{
+  "info": {
+    "name": "Migrant API",
+    "_postman_id": "migrant-api-collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api"
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register (client)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) { pm.collectionVariables.set('token', res.token); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/register",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"გიორგი მამულაშვილი\",\n  \"email\": \"client@test.ge\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\",\n  \"role\": \"client\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Register (provider)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) { pm.collectionVariables.set('token', res.token); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/register",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"ნინო კვარაცხელია\",\n  \"email\": \"provider@test.ge\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\",\n  \"role\": \"provider\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) { pm.collectionVariables.set('token', res.token); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/login",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"provider@test.ge\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/auth/me",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ]
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/logout",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Provider — Listings",
+      "item": [
+        {
+          "name": "Get My Listings + Stats",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/provider/listings",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ]
+          }
+        },
+        {
+          "name": "Create Listing (standard)",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/provider/listings",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider_name\": \"ნინო კვარაცხელია\",\n  \"phone\": \"+49 152 123 4567\",\n  \"nationality\": \"Georgian\",\n  \"languages\": [\"Georgian\", \"German\", \"English\"],\n  \"profession\": \"Lawyer\",\n  \"country\": \"Germany\",\n  \"city\": \"Berlin\",\n  \"description\": \"გთავაზობთ იურიდიულ კონსულტაციებს გერმანიაში მცხოვრები ქართველებისთვის. ვიზები, ნატურალიზაცია, შრომითი სამართალი.\",\n  \"listing_type\": \"standard\",\n  \"price_type\": \"hourly\",\n  \"price_value\": 80,\n  \"photos\": [],\n  \"email\": \"nino@example.com\",\n  \"booking_mode\": \"request\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create Listing (vip, negotiable)",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/provider/listings",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider_name\": \"ნინო კვარაცხელია\",\n  \"phone\": \"+49 152 123 4567\",\n  \"nationality\": \"Georgian\",\n  \"languages\": [\"Georgian\", \"German\"],\n  \"profession\": \"Accountant\",\n  \"country\": \"Germany\",\n  \"city\": \"Munich\",\n  \"description\": \"ბუღალტრული მომსახურება ქართველი ემიგრანტებისთვის. საგადასახადო დეკლარაციები, DATEV, გერმანული ბუღალტერია.\",\n  \"listing_type\": \"vip\",\n  \"price_type\": \"negotiable\",\n  \"price_value\": null,\n  \"photos\": [],\n  \"booking_mode\": \"calendar\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Listing",
+          "request": {
+            "method": "PUT",
+            "url": "{{base_url}}/provider/listings/1",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider_name\": \"ნინო კვარაცხელია\",\n  \"profession\": \"Lawyer\",\n  \"country\": \"Germany\",\n  \"city\": \"Hamburg\",\n  \"description\": \"გთავაზობთ იურიდიულ კონსულტაციებს — განახლებული სერვისი ჰამბურგში.\",\n  \"price_type\": \"fixed\",\n  \"price_value\": 120,\n  \"phone\": \"+49 152 999 8888\",\n  \"email\": \"nino.updated@example.com\",\n  \"status\": \"active\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Listing",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/provider/listings/1",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

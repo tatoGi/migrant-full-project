@@ -4,105 +4,150 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is the **Laravel 12 RESTful API backend** for an emigrant/migrant services platform, built with **Laravel Boost**. It serves the Next.js frontend located at `C:\Users\pc\Desktop\tato\emigrant-next`. There are no Blade views used for the application — this is a pure API backend.
-
-The frontend communicates via `axios` + TanStack Query. All routes should live in `routes/api.php`. The frontend expects these endpoint patterns (from its TODO comments):
-- `POST /api/auth/login`, `POST /api/auth/register`, `POST /api/auth/logout`, `POST /api/auth/forgot-password`
-- `GET /api/listings`, `POST /api/listings`, `PUT /api/listings/{id}`, `DELETE /api/listings/{id}`
-
-User roles: `client`, `provider`, `admin`.
+**Laravel 12 RESTful API backend** for Emigrant.GE — a Georgian emigrant services marketplace. Pure API, no Blade views. Serves the Next.js frontend at `C:\Users\pc\Desktop\tato\emigrant-next`.
 
 ---
 
-## Laravel Backend Commands
+## Commands
 
-### Development
 ```bash
-npm run dev          # Start Vite + artisan serve + queue worker concurrently
-php artisan serve    # Laravel backend only
-```
+npm run dev               # Start Vite + artisan serve + queue worker (concurrently)
+php artisan serve         # Laravel only
 
-### Testing
-```bash
-php artisan test                               # Run all tests
-php artisan test tests/Feature/FooTest.php    # Run a single test file
-php artisan test --filter=test_method_name    # Run a specific test method
-```
+php artisan migrate       # Run migrations
+php artisan migrate:fresh # Drop all + re-run
+php artisan db:seed       # Run seeders
 
-### Code Style
-```bash
-vendor/bin/pint        # Fix PHP code style (Laravel Pint)
-vendor/bin/pint --test # Check without fixing
-```
+php artisan test                                     # All tests
+php artisan test tests/Feature/Auth/LoginTest.php   # Single file
+php artisan test --filter=test_user_can_login        # Single test
 
-### Database
-```bash
-php artisan migrate           # Run migrations
-php artisan migrate:fresh     # Drop all tables and re-run
-php artisan db:seed           # Run seeders
+vendor/bin/pint           # Fix code style
+vendor/bin/pint --test    # Check without fixing
 ```
 
 ---
 
-## Laravel Architecture
+## Stack
 
-**Stack**: Laravel 12 (PHP ^8.2) + Laravel Boost
+| Package | Version | Role |
+|---|---|---|
+| `laravel/framework` | ^12.0 | Core framework |
+| `laravel/sanctum` | ^4.3 | Token authentication |
+| `spatie/laravel-permission` | ^7.2 | Role management |
+| `laravel/boost` | 2.0 (dev) | Dev tooling |
+| `laravel/pint` | ^1.24 (dev) | Code style |
 
-**Key packages**:
-- **spatie/laravel-query-builder** — filter, sort, and include relations via query params (`?filter[field]=value&sort=field&include=relation`)
-- **spatie/laravel-permission** — role & permission management. Roles: `client`, `provider`, `admin`. Use `$user->assignRole()`, `$user->hasRole()`, `@role` / `can()` directives
-
-**Key layout**:
-- `app/Models/` — Eloquent models
-- `app/Http/Controllers/` — API controllers
-- `routes/api.php` — All API routes (primary routes file)
-- `database/migrations/` — Database schema
-
-**Database**: MySQL by default; tests use SQLite in-memory (configured in `phpunit.xml`). Sessions, cache, and queues use the database driver.
-
-**Testing**: PHPUnit — Feature (`tests/Feature/`) and Unit (`tests/Unit/`) suites run against isolated SQLite DB automatically.
+> **Not yet installed** (planned): `spatie/laravel-query-builder`, Elasticsearch.
 
 ---
 
-## Next.js Frontend (`C:\Users\pc\Desktop\tato\emigrant-next`)
+## Architecture: Repository → Service → Controller
 
-### Commands
-```bash
-npm run dev    # Start Next.js dev server
-npm run build  # Production build
-npm run lint   # ESLint
+Every feature follows this pattern strictly:
+
+```
+app/
+├── Http/
+│   ├── Controllers/Api/     # Thin — only calls Service, returns JSON
+│   ├── Requests/{Resource}/ # Form Requests — validation + authorization
+│   └── Resources/           # API Resources — JSON shape
+├── Services/                # Business logic — calls Repository
+├── Repositories/
+│   ├── Contracts/           # Interfaces
+│   └── {Model}Repository.php
+├── Models/
+└── Providers/
+    └── RepositoryServiceProvider.php  # Binds Interface → Implementation
 ```
 
-### Stack
-- **Next.js 16** — App Router (not Pages Router), React 19, TypeScript
-- **Styling**: Tailwind CSS 4 + shadcn/ui (Radix UI primitives), `src/app/globals.css`
-- **Forms**: React Hook Form + Zod validation
-- **HTTP**: axios
-- **Server state**: TanStack Query (React Query v5), configured with 60s staleTime
-- **Auth state**: React Context (`src/contexts/AuthContext.tsx`)
-- **UI lang**: Georgian (`lang="ka"`)
+**Rules:**
+- Controllers: only inject Service, call it with `$request->validated()`, return `JsonResponse`
+- Services: business logic only, call Repository methods
+- Repositories: all Eloquent queries, no logic
+- Always bind `Interface → Implementation` in `RepositoryServiceProvider`
 
-### Architecture
+---
+
+## What's Built
+
+### Auth (`/api/auth/*`)
+
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| POST | `/api/auth/register` | — | Register, assign role, return Sanctum token |
+| POST | `/api/auth/login` | — | Login, return Sanctum token |
+| POST | `/api/auth/logout` | `auth:sanctum` | Delete current token |
+| GET | `/api/auth/me` | `auth:sanctum` | Return current user |
+
+**Token flow**: All protected routes use `middleware('auth:sanctum')`. Frontend must send `Authorization: Bearer {token}`.
+
+**Roles**: `client`, `provider` (registerable). `admin` assigned manually. `role` field validated as `in:client,provider` in `RegisterRequest`.
+
+**Response shape** (from `UserResource`):
+```json
+{ "user": { "id": 1, "name": "...", "email": "..." }, "token": "..." }
 ```
-src/
-├── app/
-│   ├── (public)/      # login, register, search, listing/[id], forgot-password, reset-password
-│   ├── (protected)/   # client/*, provider/*, admin/*
-│   ├── layout.tsx     # Root layout — wraps in <Providers>
-│   └── page.tsx       # Home page
-├── components/
-│   ├── ui/            # shadcn/ui components
-│   └── *.tsx          # Shared components (Header, Footer, ListingCard, etc.)
-├── contexts/
-│   └── AuthContext.tsx  # Auth state: user, role (client|provider|admin), signIn/signOut/signUp
-├── lib/
-│   ├── data.ts        # Static/mock data — replace with API calls
-│   └── utils.ts       # cn() tailwind merge utility
-└── proxy.ts           # Middleware stub for route protection (currently disabled)
+
+### Models
+- `User` — uses `HasApiTokens` (Sanctum), `HasRoles` (Spatie), `HasFactory`, `Notifiable`
+
+### Repositories
+- `UserRepositoryInterface` → `UserRepository`: `create(array): User`, `findByEmail(string): ?User`
+
+---
+
+## Form Requests
+
+Stored in `app/Http/Requests/{Resource}/`. Example: `Auth/RegisterRequest.php`.
+
+- `authorize()` — role/permission check (not in Controller)
+- `rules()` — standard Laravel array syntax
+- `messages()` — **Georgian** error messages (UI language is Georgian)
+
+```php
+public function messages(): array
+{
+    return [
+        'email.required' => 'ელ-ფოსტა სავალდებულოა.',
+        'email.unique'   => 'ეს ელ-ფოსტა უკვე რეგისტრირებულია.',
+    ];
+}
 ```
 
-**Route protection**: `(protected)` route group wraps `/client`, `/provider`, `/admin`. Middleware in `src/proxy.ts` is stubbed — needs backend JWT/token check implemented.
+---
 
-**Auth**: `AuthContext` currently uses mock users (`client@test.ge`, `provider@test.ge`, `admin@test.ge`) stored in localStorage. All `signIn`/`signUp`/`signOut` methods have `// TODO` comments pointing to the Laravel API endpoints.
+## Adding a New Feature (e.g. Listings)
 
-**Import alias**: `@/*` → `src/*`
+1. Migration → `php artisan make:migration create_listings_table`
+2. Model → `php artisan make:model Listing`
+3. Interface → `app/Repositories/Contracts/ListingRepositoryInterface.php`
+4. Repository → `app/Repositories/ListingRepository.php` (implements interface)
+5. Bind in `RepositoryServiceProvider::register()`
+6. Service → `app/Services/ListingService.php` (inject repository via constructor)
+7. Form Requests → `app/Http/Requests/Listing/StoreListingRequest.php`, etc.
+8. Resource → `app/Http/Resources/ListingResource.php`
+9. Controller → `app/Http/Controllers/Api/ListingController.php` (inject service)
+10. Routes → `routes/api.php`
+
+---
+
+## Database & Testing
+
+- **DB**: MySQL (production). Tests use **SQLite in-memory** (configured in `phpunit.xml`).
+- Sessions, cache, queues: database driver.
+- Tests live in `tests/Feature/` and `tests/Unit/`.
+
+---
+
+## Frontend Integration
+
+Frontend: `C:\Users\pc\Desktop\tato\emigrant-next` (Next.js 16, axios, TanStack Query).
+
+Frontend `AuthContext` has these TODOs to replace with real API calls:
+- `signIn` → `POST /api/auth/login`
+- `signUp` → `POST /api/auth/register` (send `name`, `email`, `password`, `password_confirmation`, `role`)
+- `signOut` → `POST /api/auth/logout` (Bearer token)
+- `resetPassword` → `POST /api/auth/forgot-password` (not yet built in backend)
+
+Frontend middleware (`src/proxy.ts`) is stubbed — needs to validate the Sanctum token when backend is ready.

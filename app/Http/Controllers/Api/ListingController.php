@@ -1,0 +1,124 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Listing\StoreListingPhotoRequest;
+use App\Http\Requests\Listing\StoreListingRequest;
+use App\Http\Requests\Listing\UpdateListingRequest;
+use App\Http\Resources\ListingResource;
+use App\Repositories\Contracts\ListingRepositoryInterface;
+use App\Services\ListingService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class ListingController extends Controller
+{
+    public function __construct(
+        private readonly ListingService $listingService,
+        private readonly ListingRepositoryInterface $listingRepository,
+    ) {}
+
+    // GET /api/provider/listings — provider's own listings + stats
+    public function vip(): JsonResponse
+    {
+        $listings = $this->listingService->getHomepageVipListings();
+
+        return response()->json([
+            'listings' => ListingResource::collection($listings),
+            'meta' => [
+                'total' => $listings->count(),
+            ],
+        ]);
+    }
+
+    public function index(Request $request): JsonResponse
+    {
+        $listings = $this->listingService->getProviderListings($request->user());
+        $stats = $this->listingService->getProviderStats($request->user());
+
+        return response()->json([
+            'stats' => $stats,
+            'listings' => ListingResource::collection($listings),
+            'meta' => [
+                'current_page' => $listings->currentPage(),
+                'last_page' => $listings->lastPage(),
+                'total' => $listings->total(),
+            ],
+        ]);
+    }
+
+    // POST /api/provider/listings
+    public function store(StoreListingRequest $request): JsonResponse
+    {
+        $listing = $this->listingService->store($request->user(), $request->validated());
+
+        return response()->json(new ListingResource($listing), 201);
+    }
+
+    // PUT /api/provider/listings/{listing}
+    public function update(UpdateListingRequest $request, int $id): JsonResponse
+    {
+        $listing = $this->listingRepository->findById($id);
+
+        if (! $listing || $listing->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'განცხადება ვერ მოიძებნა.'], 404);
+        }
+
+        $updated = $this->listingService->update($listing, $request->validated());
+
+        return response()->json(new ListingResource($updated));
+    }
+
+    // DELETE /api/provider/listings/{id}
+    public function destroy(Request $request, int $id): JsonResponse
+    {
+        $listing = $this->listingRepository->findById($id);
+
+        if (! $listing || $listing->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'განცხადება ვერ მოიძებნა.'], 404);
+        }
+
+        $this->listingService->delete($listing);
+
+        return response()->json(['message' => 'განცხადება წაიშალა.']);
+    }
+
+    // POST /api/provider/listings/{id}/photos
+    public function uploadPhoto(StoreListingPhotoRequest $request, int $id): JsonResponse
+    {
+        $listing = $this->listingRepository->findById($id);
+
+        if (! $listing || $listing->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'განცხადება ვერ მოიძებნა.'], 404);
+        }
+
+        $url = $this->listingService->uploadPhoto($listing, $request->file('photo'));
+
+        return response()->json([
+            'url' => $url,
+            'photos' => $listing->fresh()->photos,
+        ], 201);
+    }
+
+    // DELETE /api/provider/listings/{id}/photos/{index}
+    public function removePhoto(Request $request, int $id, int $index): JsonResponse
+    {
+        $listing = $this->listingRepository->findById($id);
+
+        if (! $listing || $listing->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'განცხადება ვერ მოიძებნა.'], 404);
+        }
+
+        if (! isset(($listing->photos ?? [])[$index])) {
+            return response()->json(['message' => 'ფოტო ვერ მოიძებნა.'], 404);
+        }
+
+        $this->listingService->removePhoto($listing, $index);
+
+        return response()->json([
+            'message' => 'ფოტო წაიშალა.',
+            'photos' => $listing->fresh()->photos,
+        ]);
+    }
+}
