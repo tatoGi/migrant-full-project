@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 class SiteSettings extends Model
 {
     protected $fillable = [
+        'logo',
         'banner_image',
         'banner_title',
         'banner_subtitle',
@@ -20,8 +21,13 @@ class SiteSettings extends Model
         return self::firstOrCreate(['id' => 1]);
     }
 
+    public function getLogoUrlAttribute(): ?string
+    {
+        return $this->logo ? url(Storage::url($this->logo)) : null;
+    }
+
     public function getBannerImageUrlAttribute(): ?string
     {
-        return $this->banner_image ? Storage::url($this->banner_image) : null;
+        return $this->banner_image ? url(Storage::url($this->banner_image)) : null;
     }
 }

@@ -20,14 +20,27 @@ class BannerController extends Controller
         return response()->json(new SiteSettingsResource($this->bannerService->get()));
     }
 
-    // POST /api/admin/banner  (multipart/form-data — contains image file + text fields)
+    // DELETE /api/admin/site-settings/logo
+    public function deleteLogo(): JsonResponse
+    {
+        return response()->json(new SiteSettingsResource($this->bannerService->deleteLogo()));
+    }
+
+    // DELETE /api/admin/site-settings/banner-image
+    public function deleteImage(): JsonResponse
+    {
+        return response()->json(new SiteSettingsResource($this->bannerService->deleteImage()));
+    }
+
+    // POST /api/admin/site-settings  (multipart/form-data)
     public function update(UpdateBannerRequest $request): JsonResponse
     {
-        $data = $request->safe()->except('banner_image');
+        $data = $request->safe()->except(['banner_image', 'logo']);
 
         $settings = $this->bannerService->update(
             $data,
             $request->hasFile('banner_image') ? $request->file('banner_image') : null,
+            $request->hasFile('logo') ? $request->file('logo') : null,
         );
 
         return response()->json(new SiteSettingsResource($settings));

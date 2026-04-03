@@ -73,7 +73,6 @@ class ClientPanelTest extends TestCase
             'listing_type' => 'vip',
             'price_type' => 'fixed',
             'price_value' => 120,
-            'photos' => ['listings/1/photo.jpg'],
             'booking_mode' => 'request',
             'status' => 'active',
             'views_count' => 5,
@@ -91,7 +90,7 @@ class ClientPanelTest extends TestCase
             ->assertJsonPath('saved_listings.0.id', $listing->id)
             ->assertJsonPath('saved_listings.0.provider_id', $provider->id)
             ->assertJsonPath('saved_listings.0.is_vip', true)
-            ->assertJsonPath('saved_listings.0.photo', '/storage/listings/1/photo.jpg');
+            ->assertJsonPath('saved_listings.0.photo', null);
 
         $this->deleteJson("/api/client/saved-listings/{$listing->id}")
             ->assertOk()

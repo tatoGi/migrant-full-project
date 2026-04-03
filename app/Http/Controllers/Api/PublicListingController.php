@@ -23,16 +23,16 @@ class PublicListingController extends Controller
             'data' => ListingResource::collection($listings),
             'meta' => [
                 'current_page' => $listings->currentPage(),
-                'last_page'    => $listings->lastPage(),
-                'total'        => $listings->total(),
+                'last_page' => $listings->lastPage(),
+                'total' => $listings->total(),
             ],
         ]);
     }
 
-    // GET /api/listings/{id}
-    public function show(int $id): JsonResponse
+    // GET /api/listings/{slug}
+    public function show(string $slug): JsonResponse
     {
-        $listing = $this->listingRepository->findById($id);
+        $listing = $this->listingRepository->findBySlugWithSettings($slug);
 
         if (! $listing || $listing->status !== 'active') {
             return response()->json(['message' => 'განცხადება ვერ მოიძებნა.'], 404);

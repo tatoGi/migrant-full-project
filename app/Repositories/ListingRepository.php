@@ -72,6 +72,18 @@ class ListingRepository implements ListingRepositoryInterface
         return Listing::find($id);
     }
 
+    public function findBySlug(string $slug): ?Listing
+    {
+        return Listing::where('slug', $slug)->first();
+    }
+
+    public function findBySlugWithSettings(string $slug): ?Listing
+    {
+        return Listing::with('user.providerSettings')
+            ->where('slug', $slug)
+            ->first();
+    }
+
     public function getPublicListings(array $filters): LengthAwarePaginator
     {
         return QueryBuilder::for(Listing::class)
@@ -81,17 +93,12 @@ class ListingRepository implements ListingRepositoryInterface
                 AllowedFilter::exact('city'),
                 AllowedFilter::exact('nationality'),
                 AllowedFilter::exact('listing_type'),
-                AllowedFilter::callback('language', fn ($query, $value) =>
-                    $query->whereJsonContains('languages', $value)
+                AllowedFilter::callback('language', fn ($query, $value) => $query->whereJsonContains('languages', $value)
                 ),
-                AllowedFilter::callback('search', fn ($query, $value) =>
-                    $query->where(function ($q) use ($value) {
-                        $q->where('provider_name', 'like', "%{$value}%")
-                          ->orWhere('profession', 'like', "%{$value}%")
-                          ->orWhere('city', 'like', "%{$value}%")
-                          ->orWhere('description', 'like', "%{$value}%");
-                    })
-                ),
+                AllowedFilter::exact('user_id'),
+                AllowedFilter::callback('search', fn ($query, $value) => $query->whereIn(
+                    'id', Listing::search($value)->keys()
+                )),
             ])
             ->allowedSorts(['created_at', 'views_count', 'price_value'])
             ->defaultSort('-created_at')

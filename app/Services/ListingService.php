@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Data\StoreListingData;
 use App\Models\Listing;
 use App\Models\User;
 use App\Repositories\Contracts\ListingRepositoryInterface;
@@ -38,79 +39,81 @@ class ListingService
         ];
     }
 
-    public function store(User $user, array $data): Listing
+    public function store(User $user, StoreListingData $data): Listing
     {
-        // Create listing first (without photos)
+        $tokens = $data->photos ?? [];
+
         $listing = $this->listingRepository->create([
-            ...$data,
             'user_id' => $user->id,
-            'photos' => [],
+            'provider_name' => $data->provider_name,
+            'phone' => $data->phone,
+            'email' => $data->email,
+            'nationality' => $data->nationality,
+            'languages' => $data->languages,
+            'profession' => $data->profession,
+            'country' => $data->country,
+            'city' => $data->city,
+            'description' => $data->description,
+            'listing_type' => $data->listing_type,
+            'price_type' => $data->price_type,
+            'price_value' => $data->price_value,
+            'booking_mode' => $data->booking_mode,
         ]);
 
-        // Move temp photos to permanent storage: temp/{token}.ext → listings/{id}/{token}.ext
-        if (! empty($data['photos'])) {
-            $permanentPaths = [];
+        // Move temp photos into MediaLibrary: temp/{token}.jpg → media collection
+        foreach ($tokens as $token) {
+            $tempFiles = Storage::disk('public')->files('temp');
+            $tempPath = collect($tempFiles)->first(
+                fn ($f) => Str::startsWith(basename($f), $token)
+            );
 
-            foreach ($data['photos'] as $token) {
-                $tempFiles = Storage::disk('public')->files('temp');
-                $tempPath = collect($tempFiles)->first(
-                    fn ($f) => Str::startsWith(basename($f), $token)
-                );
+            if ($tempPath) {
+                $listing
+                    ->addMediaFromDisk($tempPath, 'public')
+                    ->toMediaCollection('photos');
 
-                if ($tempPath) {
-                    $ext = pathinfo($tempPath, PATHINFO_EXTENSION);
-                    $newPath = "listings/{$listing->id}/{$token}.{$ext}";
-                    Storage::disk('public')->move($tempPath, $newPath);
-                    $permanentPaths[] = $newPath;
-                }
+                Storage::disk('public')->delete($tempPath);
             }
-
-            $this->listingRepository->update($listing, ['photos' => $permanentPaths]);
-            $listing = $listing->fresh();
         }
 
-        return $listing;
+        return $listing->fresh();
     }
 
     public function update(Listing $listing, array $data): Listing
     {
+        unset($data['photos']);
+
         return $this->listingRepository->update($listing, $data);
     }
 
     public function delete(Listing $listing): void
     {
-        // Delete all stored photos from disk
-        foreach ($listing->photos ?? [] as $path) {
-            Storage::disk('public')->delete($path);
-        }
-
+        // MediaLibrary auto-deletes associated media when the model is deleted
         $this->listingRepository->delete($listing);
     }
 
-    public function uploadPhoto(Listing $listing, UploadedFile $file): string
+    public function uploadPhoto(Listing $listing, UploadedFile $file): array
     {
-        $path = $file->store("listings/{$listing->id}", 'public');
+        $media = $listing
+            ->addMedia($file)
+            ->toMediaCollection('photos');
 
-        $photos = $listing->photos ?? [];
-        $photos[] = $path;
-
-        $this->listingRepository->update($listing, ['photos' => $photos]);
-
-        return Storage::url($path);
+        return [
+            'uuid' => $media->uuid,
+            'url' => $media->getUrl(),
+        ];
     }
 
-    public function removePhoto(Listing $listing, int $index): void
+    public function removePhoto(Listing $listing, string $uuid): bool
     {
-        $photos = $listing->photos ?? [];
+        $media = $listing->getMedia('photos')->firstWhere('uuid', $uuid);
 
-        if (! isset($photos[$index])) {
-            return;
+        if (! $media) {
+            return false;
         }
 
-        Storage::disk('public')->delete($photos[$index]);
+        $media->delete();
 
-        array_splice($photos, $index, 1);
-
-        $this->listingRepository->update($listing, ['photos' => array_values($photos)]);
+        return true;
     }
 }

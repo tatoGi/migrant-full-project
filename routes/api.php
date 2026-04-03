@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\Admin\AdminListingController;
 use App\Http\Controllers\Api\Admin\BannerController;
 use App\Http\Controllers\Api\Admin\SupportMessageController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\SupportChatController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ClientSavedListingController;
 use App\Http\Controllers\Api\ListingController;
@@ -14,13 +15,17 @@ use App\Http\Controllers\Api\UploadController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes (no auth)
+Route::get('site-settings', [BannerController::class, 'show']);
 Route::get('categories', [CategoryController::class, 'index']);
 Route::get('listings', [PublicListingController::class, 'index']);
-Route::get('listings/{id}', [PublicListingController::class, 'show']);
+Route::get('listings/vip', [ListingController::class, 'vip']);
+Route::get('listings/{slug}', [PublicListingController::class, 'show']);
 
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
+    Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('reset-password', [AuthController::class, 'resetPassword']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
@@ -29,12 +34,13 @@ Route::prefix('auth')->group(function () {
     });
 });
 
-Route::get('listings/vip', [ListingController::class, 'vip']);
-
 // Shared authenticated routes (all roles)
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('profile', [ProfileController::class, 'show']);
     Route::put('profile', [ProfileController::class, 'update']);
+
+    Route::post('support/send', [SupportChatController::class, 'send']);
+    Route::get('support/history', [SupportChatController::class, 'history']);
 
     // Temp photo upload — Step 3 drag&drop (before listing is created)
     Route::post('uploads/temp', [UploadController::class, 'temp']);
@@ -47,7 +53,7 @@ Route::middleware(['auth:sanctum', 'role:provider'])->prefix('provider')->group(
     Route::put('listings/{id}', [ListingController::class, 'update']);
     Route::delete('listings/{id}', [ListingController::class, 'destroy']);
     Route::post('listings/{id}/photos', [ListingController::class, 'uploadPhoto']);
-    Route::delete('listings/{id}/photos/{index}', [ListingController::class, 'removePhoto']);
+    Route::delete('listings/{id}/photos/{uuid}', [ListingController::class, 'removePhoto']);
 
     Route::get('settings', [ProviderSettingsController::class, 'show']);
     Route::put('settings', [ProviderSettingsController::class, 'update']);
@@ -71,7 +77,9 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::get('support/messages/{conversationId}', [SupportMessageController::class, 'show']);
     Route::post('support/reply', [SupportMessageController::class, 'reply']);
 
-    // Banner
-    Route::get('banner', [BannerController::class, 'show']);
-    Route::post('banner', [BannerController::class, 'update']);
+    // Site Settings (Banner, Logo, etc)
+    Route::get('site-settings', [BannerController::class, 'show']);
+    Route::post('site-settings', [BannerController::class, 'update']);
+    Route::delete('site-settings/banner-image', [BannerController::class, 'deleteImage']);
+    Route::delete('site-settings/logo', [BannerController::class, 'deleteLogo']);
 });

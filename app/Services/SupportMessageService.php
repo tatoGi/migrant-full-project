@@ -73,4 +73,26 @@ class SupportMessageService
             'is_read' => false,
         ]);
     }
+
+    public function sendMessage(int $userId, string $message, ?string $conversationId = null): SupportMessage
+    {
+        // Continue existing conversation or start new one
+        if ($conversationId) {
+            return SupportMessage::create([
+                'conversation_id' => $conversationId,
+                'user_id' => $userId,
+                'message' => $message,
+                'is_admin_reply' => false,
+                'is_read' => false,
+            ]);
+        }
+
+        return $this->startConversation($userId, $message);
+    }
+
+    public function getUserConversation(int $userId): ?string
+    {
+        return SupportMessage::where('user_id', $userId)
+            ->value('conversation_id');
+    }
 }

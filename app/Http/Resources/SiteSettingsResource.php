@@ -10,6 +10,7 @@ class SiteSettingsResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'logo_url' => $this->logo_url,
             'banner_image_url' => $this->banner_image_url,
             'banner_title' => $this->banner_title,
             'banner_subtitle' => $this->banner_subtitle,

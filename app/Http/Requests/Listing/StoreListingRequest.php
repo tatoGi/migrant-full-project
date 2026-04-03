@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Listing;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Propaganistas\LaravelPhone\Rules\Phone;
 
 class StoreListingRequest extends FormRequest
 {
@@ -16,7 +17,7 @@ class StoreListingRequest extends FormRequest
         return [
             // Step 1 — Basic Info
             'provider_name' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'max:50'],
+            'phone' => ['required', 'string', (new Phone)->international()],
             'nationality' => ['required', 'string', 'max:100'],
             'languages' => ['required', 'array', 'min:1'],
             'languages.*' => ['string'],
@@ -29,7 +30,7 @@ class StoreListingRequest extends FormRequest
             'listing_type' => ['required', 'in:standard,vip'],
 
             // Step 3 — Price & Photos
-            // photos არის temp token UUID-ების array (POST /api/uploads/temp-დან მიღებული)
+            // photos = temp token UUID-ების array (POST /api/uploads/temp-დან)
             'price_type' => ['required', 'in:fixed,hourly,negotiable'],
             'price_value' => ['nullable', 'numeric', 'min:0', 'required_unless:price_type,negotiable'],
             'photos' => ['nullable', 'array', 'max:10'],
@@ -46,6 +47,7 @@ class StoreListingRequest extends FormRequest
         return [
             'provider_name.required' => 'სახელი სავალდებულოა.',
             'phone.required' => 'ტელეფონი სავალდებულოა.',
+            'phone.phone' => 'ტელეფონის ნომერი არასწორია (მაგ: +995555123456).',
             'nationality.required' => 'ეროვნება სავალდებულოა.',
             'languages.required' => 'მინიმუმ ერთი ენა სავალდებულოა.',
             'languages.min' => 'მინიმუმ ერთი ენა სავალდებულოა.',

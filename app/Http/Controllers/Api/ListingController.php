@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Data\StoreListingData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Listing\StoreListingPhotoRequest;
 use App\Http\Requests\Listing\StoreListingRequest;
@@ -19,7 +20,7 @@ class ListingController extends Controller
         private readonly ListingRepositoryInterface $listingRepository,
     ) {}
 
-    // GET /api/provider/listings — provider's own listings + stats
+    // GET /api/listings/vip
     public function vip(): JsonResponse
     {
         $listings = $this->listingService->getHomepageVipListings();
@@ -32,6 +33,7 @@ class ListingController extends Controller
         ]);
     }
 
+    // GET /api/provider/listings
     public function index(Request $request): JsonResponse
     {
         $listings = $this->listingService->getProviderListings($request->user());
@@ -51,12 +53,15 @@ class ListingController extends Controller
     // POST /api/provider/listings
     public function store(StoreListingRequest $request): JsonResponse
     {
-        $listing = $this->listingService->store($request->user(), $request->validated());
+        $listing = $this->listingService->store(
+            $request->user(),
+            StoreListingData::from($request->validated())
+        );
 
         return response()->json(new ListingResource($listing), 201);
     }
 
-    // PUT /api/provider/listings/{listing}
+    // PUT /api/provider/listings/{id}
     public function update(UpdateListingRequest $request, int $id): JsonResponse
     {
         $listing = $this->listingRepository->findById($id);
@@ -93,16 +98,17 @@ class ListingController extends Controller
             return response()->json(['message' => 'განცხადება ვერ მოიძებნა.'], 404);
         }
 
-        $url = $this->listingService->uploadPhoto($listing, $request->file('photo'));
+        $photo = $this->listingService->uploadPhoto($listing, $request->file('photo'));
 
         return response()->json([
-            'url' => $url,
-            'photos' => $listing->fresh()->photos,
+            'uuid' => $photo['uuid'],
+            'url' => $photo['url'],
+            'photos' => ListingResource::make($listing->fresh())->toArray($request)['photos'],
         ], 201);
     }
 
-    // DELETE /api/provider/listings/{id}/photos/{index}
-    public function removePhoto(Request $request, int $id, int $index): JsonResponse
+    // DELETE /api/provider/listings/{id}/photos/{uuid}
+    public function removePhoto(Request $request, int $id, string $uuid): JsonResponse
     {
         $listing = $this->listingRepository->findById($id);
 
@@ -110,15 +116,13 @@ class ListingController extends Controller
             return response()->json(['message' => 'განცხადება ვერ მოიძებნა.'], 404);
         }
 
-        if (! isset(($listing->photos ?? [])[$index])) {
+        if (! $this->listingService->removePhoto($listing, $uuid)) {
             return response()->json(['message' => 'ფოტო ვერ მოიძებნა.'], 404);
         }
 
-        $this->listingService->removePhoto($listing, $index);
-
         return response()->json([
             'message' => 'ფოტო წაიშალა.',
-            'photos' => $listing->fresh()->photos,
+            'photos' => ListingResource::make($listing->fresh())->toArray($request)['photos'],
         ]);
     }
 }

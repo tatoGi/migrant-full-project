@@ -25,6 +25,10 @@ interface ListingRepositoryInterface
 
     public function findById(int $id): ?Listing;
 
+    public function findBySlug(string $slug): ?Listing;
+
+    public function findBySlugWithSettings(string $slug): ?Listing;
+
     public function getPublicListings(array $filters): LengthAwarePaginator;
 
     public function incrementViews(Listing $listing): void;

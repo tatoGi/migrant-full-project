@@ -14,6 +14,7 @@ class UpdateBannerRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'logo' => ['sometimes', 'nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp,svg', 'max:5120'],
             'banner_image' => ['sometimes', 'nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
             'banner_title' => ['sometimes', 'nullable', 'string', 'max:255'],
             'banner_subtitle' => ['sometimes', 'nullable', 'string', 'max:500'],
@@ -24,6 +25,9 @@ class UpdateBannerRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'logo.image' => 'ლოგო უნდა იყოს სურათი.',
+            'logo.mimes' => 'დაშვებულია JPG, PNG, WEBP, SVG.',
+            'logo.max' => 'ლოგო მაქსიმუმ 5MB.',
             'banner_image.image' => 'ფაილი უნდა იყოს სურათი.',
             'banner_image.mimes' => 'დაშვებულია JPG, PNG, WEBP.',
             'banner_image.max' => 'სურათი მაქსიმუმ 10MB.',
