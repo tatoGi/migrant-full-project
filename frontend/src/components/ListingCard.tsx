@@ -13,18 +13,30 @@ const ListingCard = ({ listing }: ListingCardProps) => {
       ? "შეთანხმებით"
       : `€${listing.priceValue}${listing.priceType === "hourly" ? "/სთ" : ""}`;
 
+  const cityLabel = Array.isArray(listing.city)
+    ? listing.city.slice(0, 2).join(", ")
+    : listing.city;
+
   return (
     <Link
       href={`/listing/${listing.slug ?? listing.id}`}
       className="group block bg-card rounded-xl border border-border overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1"
     >
-      <div className="relative aspect-[4/3] overflow-hidden">
-        <img
-          src={listing.photo}
-          alt={listing.providerName}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          loading="lazy"
-        />
+      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+        {listing.photo ? (
+          <img
+            src={listing.photo}
+            alt={listing.providerName}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            loading="lazy"
+          />
+        ) : (
+          <img
+            src="/default-avatar.svg"
+            alt={listing.providerName}
+            className="w-full h-full object-cover"
+          />
+        )}
         {listing.isVip && (
           <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground border-0 font-display text-xs">
             VIP
@@ -41,7 +53,7 @@ const ListingCard = ({ listing }: ListingCardProps) => {
         <p className="text-sm text-muted-foreground mt-0.5">{listing.profession}</p>
         <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
           <MapPin className="h-3 w-3" />
-          {listing.city}, {listing.country}
+          {cityLabel}, {listing.country}
         </div>
         <div className="flex items-center justify-end mt-3 pt-3 border-t border-border">
           <div className="flex items-center gap-1 text-xs text-muted-foreground">

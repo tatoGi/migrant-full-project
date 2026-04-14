@@ -1,0 +1,38 @@
+# ─────────────────────────────────────────────────────────────
+# PHP 7.x Dockerfile (7.2, 7.3, 7.4)
+# გამოყენება: docker-compose.yml-ში შეცვალე dockerfile პარამეტრი
+# ─────────────────────────────────────────────────────────────
+ARG PHP_VERSION=7.4
+FROM php:${PHP_VERSION}-fpm
+
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    zip \
+    unzip \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    libzip-dev \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libpq-dev \
+    && docker-php-ext-configure gd \
+        --with-freetype-dir=/usr/include/ \
+        --with-jpeg-dir=/usr/include/ \
+    && docker-php-ext-install \
+        pdo_mysql \
+        pdo_pgsql \
+        mbstring \
+        exif \
+        pcntl \
+        bcmath \
+        gd \
+        zip \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www/html
+
+RUN chown -R www-data:www-data /var/www/html

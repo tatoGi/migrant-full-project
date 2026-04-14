@@ -40,6 +40,7 @@ class Listing extends Model implements HasMedia
 
     protected $casts = [
         'languages' => 'array',
+        'city'      => 'array',
     ];
 
     // --- Sluggable ---

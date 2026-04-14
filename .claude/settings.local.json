@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(find C:UserspcDesktoptatoemigrant-nextsrc -type f -name middleware*)",
-      "Read(//c/Users/pc/Desktop/tato/emigrant-next/src/**)"
+      "Read(//c/Users/pc/Desktop/tato/emigrant-next/src/**)",
+      "Bash(curl -s \"http://localhost:8082/api/listings\")"
     ]
   }
 }

@@ -17,7 +17,7 @@ class StoreListingData extends Data
         public readonly array $languages,
         public readonly string $profession,
         public readonly string $country,
-        public readonly string $city,
+        public readonly array $city,
         public readonly string $description,
         #[In('standard', 'vip')]
         public readonly string $listing_type,

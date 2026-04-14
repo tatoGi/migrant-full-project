@@ -7,7 +7,7 @@ import VipOffers from "@/components/VipOffers";
 import CategoryGrid from "@/components/CategoryGrid";
 import SupportChat from "@/components/SupportChat";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
+const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8082/api";
 
 export default async function HomePage() {
   const queryClient = new QueryClient();

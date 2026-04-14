@@ -50,7 +50,7 @@ function mapListing(l: ApiListing): Listing {
     priceType: l.price_type,
     priceValue: l.price_value ?? undefined,
     description: l.description,
-    photo: l.photo ?? "/placeholder.svg",
+    photo: l.photo ?? null,
     isVip: l.is_vip,
     bookingMode: l.booking_mode,
     createdAt: l.created_at ?? "",

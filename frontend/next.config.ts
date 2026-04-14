@@ -1,12 +1,7 @@
 import type { NextConfig } from "next";
-import path from "path";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    turbo: {
-      root: path.resolve(__dirname),
-    },
-  },
+  // configuration options
 };
 
 export default nextConfig;

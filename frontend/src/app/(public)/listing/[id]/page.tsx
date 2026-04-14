@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import SaveButton from "@/components/SaveButton";
 import type { Listing } from "@/lib/data";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
+const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8082/api";
 
 type ApiListing = {
   id: number;
@@ -47,7 +47,7 @@ function mapListing(l: ApiListing): Listing {
     priceType: l.price_type,
     priceValue: l.price_value ?? undefined,
     description: l.description,
-    photo: l.photo ?? "/placeholder.svg",
+    photo: l.photo ?? null,
     isVip: l.is_vip,
     bookingMode: l.booking_mode,
     createdAt: l.created_at ?? new Date().toISOString().slice(0, 10),
@@ -109,7 +109,7 @@ const ListingDetailPage = async ({ params }: Props) => {
           <div className="lg:col-span-2 space-y-8">
             <div className="flex flex-col sm:flex-row gap-6">
               <img
-                src={listing!.photo}
+                src={listing!.photo ?? "/default-avatar.svg"}
                 alt={listing!.providerName}
                 className="w-32 h-32 sm:w-40 sm:h-40 rounded-2xl object-cover shadow-card"
               />

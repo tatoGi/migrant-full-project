@@ -1,11 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { COUNTRIES, CITIES_BY_COUNTRY, PROFESSIONS } from "@/lib/data";
+import { PROFESSIONS } from "@/lib/data";
+import { getAllCountries, getCitiesOfCountry, getCountryByName } from "@/lib/geography";
 import SearchableSelect from "@/components/SearchableSelect";
+
+const ALL_COUNTRIES = getAllCountries();
+const COUNTRY_NAMES = ALL_COUNTRIES.map((c) => `${c.flag} ${c.name}`);
 
 interface HeroSearchBarProps {
   initialCountry?: string;
@@ -20,23 +24,38 @@ const HeroSearchBar = ({
   initialProfession = "",
   compact = false,
 }: HeroSearchBarProps) => {
-  const [country, setCountry] = useState(initialCountry);
+  // country stored as "🇩🇪 გერმანია" display value; bare name sent to API
+  const [countryDisplay, setCountryDisplay] = useState(
+    initialCountry
+      ? `${ALL_COUNTRIES.find((c) => c.name === initialCountry)?.flag ?? ""} ${initialCountry}`.trim()
+      : ""
+  );
   const [city, setCity] = useState(initialCity);
   const [profession, setProfession] = useState(initialProfession);
   const router = useRouter();
 
-  const cities = country ? CITIES_BY_COUNTRY[country] || [] : [];
+  // Derive ISO and bare name from display value
+  const countryName = countryDisplay.replace(/^\S+\s/, "").trim(); // strip leading flag emoji
+  const countryIso = useMemo(
+    () => getCountryByName(countryName)?.isoCode ?? "",
+    [countryName]
+  );
+
+  const cities = useMemo(
+    () => (countryIso ? getCitiesOfCountry(countryIso) : []),
+    [countryIso]
+  );
 
   const handleSearch = () => {
     const params = new URLSearchParams();
-    if (country) params.set("country", country);
+    if (countryName) params.set("country", countryName);
     if (city) params.set("city", city);
     if (profession) params.set("profession", profession);
     router.push(`/search?${params.toString()}`);
   };
 
   const handleCountryChange = (val: string) => {
-    setCountry(val);
+    setCountryDisplay(val);
     setCity("");
   };
 
@@ -51,9 +70,9 @@ const HeroSearchBar = ({
         <div className="flex-1 min-w-0">
           <SearchableSelect
             label="ქვეყანა"
-            value={country}
+            value={countryDisplay}
             onChange={handleCountryChange}
-            options={COUNTRIES}
+            options={COUNTRY_NAMES}
             placeholder="ნებისმიერი ქვეყანა"
             searchPlaceholder="ქვეყნის ძიება..."
           />
@@ -70,7 +89,7 @@ const HeroSearchBar = ({
             options={cities}
             placeholder="ნებისმიერი ქალაქი"
             searchPlaceholder="ქალაქის ძიება..."
-            disabled={!country}
+            disabled={!countryDisplay}
           />
         </div>
 

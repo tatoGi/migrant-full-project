@@ -33,7 +33,7 @@ function toCardListing(l: ApiListing) {
     priceType: l.price_type,
     priceValue: l.price_value ?? undefined,
     description: l.description,
-    photo: (l.photo ?? l.photos?.[0]?.url ?? "/placeholder.jpg") as string,
+    photo: l.photo ?? l.photos?.[0]?.url ?? null,
     isVip: l.listing_type === "vip",
     bookingMode: l.booking_mode,
     createdAt: l.created_at,

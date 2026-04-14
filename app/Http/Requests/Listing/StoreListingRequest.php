@@ -25,7 +25,8 @@ class StoreListingRequest extends FormRequest
             // Step 2 — Service Details
             'profession' => ['required', 'string', 'max:100'],
             'country' => ['required', 'string', 'max:100'],
-            'city' => ['required', 'string', 'max:100'],
+            'city' => ['required', 'array', 'min:1'],
+            'city.*' => ['string', 'max:100'],
             'description' => ['required', 'string', 'min:20'],
             'listing_type' => ['required', 'in:standard,vip'],
 
@@ -53,7 +54,8 @@ class StoreListingRequest extends FormRequest
             'languages.min' => 'მინიმუმ ერთი ენა სავალდებულოა.',
             'profession.required' => 'პროფესია სავალდებულოა.',
             'country.required' => 'ქვეყანა სავალდებულოა.',
-            'city.required' => 'ქალაქი სავალდებულოა.',
+            'city.required' => 'მინიმუმ ერთი ქალაქი სავალდებულოა.',
+            'city.min' => 'მინიმუმ ერთი ქალაქი სავალდებულოა.',
             'description.required' => 'აღწერა სავალდებულოა.',
             'description.min' => 'აღწერა მინიმუმ 20 სიმბოლო უნდა იყოს.',
             'listing_type.required' => 'განცხადების ტიპი სავალდებულოა.',

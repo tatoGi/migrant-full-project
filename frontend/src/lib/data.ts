@@ -52,6 +52,35 @@ export const LANGUAGES = [
   "პოლონური", "რუმინული", "პორტუგალიური", "ებრაული", "სპარსული",
 ];
 
+export interface PhoneCountry {
+  name: string;
+  flag: string;
+  dial: string;
+}
+
+export const PHONE_COUNTRIES: PhoneCountry[] = [
+  { name: "საქართველო", flag: "🇬🇪", dial: "+995" },
+  { name: "გერმანია", flag: "🇩🇪", dial: "+49" },
+  { name: "თურქეთი", flag: "🇹🇷", dial: "+90" },
+  { name: "რუსეთი", flag: "🇷🇺", dial: "+7" },
+  { name: "საბერძნეთი", flag: "🇬🇷", dial: "+30" },
+  { name: "იტალია", flag: "🇮🇹", dial: "+39" },
+  { name: "ესპანეთი", flag: "🇪🇸", dial: "+34" },
+  { name: "საფრანგეთი", flag: "🇫🇷", dial: "+33" },
+  { name: "პოლონეთი", flag: "🇵🇱", dial: "+48" },
+  { name: "ისრაელი", flag: "🇮🇱", dial: "+972" },
+  { name: "აშშ", flag: "🇺🇸", dial: "+1" },
+  { name: "გაერთ. სამეფო", flag: "🇬🇧", dial: "+44" },
+  { name: "უკრაინა", flag: "🇺🇦", dial: "+380" },
+  { name: "ავსტრია", flag: "🇦🇹", dial: "+43" },
+  { name: "ნიდერლანდი", flag: "🇳🇱", dial: "+31" },
+  { name: "შვედეთი", flag: "🇸🇪", dial: "+46" },
+  { name: "ნორვეგია", flag: "🇳🇴", dial: "+47" },
+  { name: "სომხეთი", flag: "🇦🇲", dial: "+374" },
+  { name: "აზერბაიჯანი", flag: "🇦🇿", dial: "+994" },
+  { name: "სხვა", flag: "🌍", dial: "+" },
+];
+
 export const NATIONALITIES = [
   "Syrian", "Turkish", "Iraqi", "Afghan", "Iranian",
   "Moroccan", "Egyptian", "Indian", "Pakistani", "Nigerian",
@@ -66,13 +95,13 @@ export interface Listing {
   providerName: string;
   profession: string;
   country: string;
-  city: string;
+  city: string | string[];
   nationality: string;
   languages: string[];
   priceType: "fixed" | "hourly" | "negotiable";
   priceValue?: number;
   description: string;
-  photo: string;
+  photo: string | null;
   rating?: number;
   reviewCount?: number;
   isVip?: boolean;

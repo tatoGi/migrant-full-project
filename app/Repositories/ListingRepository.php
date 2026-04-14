@@ -90,7 +90,7 @@ class ListingRepository implements ListingRepositoryInterface
             ->allowedFilters([
                 AllowedFilter::exact('profession'),
                 AllowedFilter::exact('country'),
-                AllowedFilter::exact('city'),
+                AllowedFilter::callback('city', fn ($query, $value) => $query->whereJsonContains('city', $value)),
                 AllowedFilter::exact('nationality'),
                 AllowedFilter::exact('listing_type'),
                 AllowedFilter::callback('language', fn ($query, $value) => $query->whereJsonContains('languages', $value)
