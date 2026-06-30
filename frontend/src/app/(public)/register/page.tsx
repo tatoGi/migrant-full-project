@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import TermsAcceptanceCheckbox from "@/components/TermsAcceptanceCheckbox";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -22,9 +23,15 @@ export default function RegisterPage() {
     role: "client" as AppRole,
   });
   const [loading, setLoading] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const handleSubmit = async (e: { preventDefault(): void }) => {
     e.preventDefault();
+
+    if (!acceptedTerms) {
+      toast.error("გთხოვთ, დაეთანხმოთ წესებსა და პოლიტიკას.");
+      return;
+    }
 
     if (form.password !== form.passwordConfirm) {
       toast.error("პაროლები არ ემთხვევა.");
@@ -128,7 +135,12 @@ export default function RegisterPage() {
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <TermsAcceptanceCheckbox
+              checked={acceptedTerms}
+              onCheckedChange={setAcceptedTerms}
+            />
+
+            <Button type="submit" className="w-full" disabled={loading || !acceptedTerms}>
               {loading ? "იტვირთება..." : "რეგისტრაცია"}
             </Button>
 

@@ -119,6 +119,26 @@ const Footer = () => {
                   ყველა განცხადება
                 </Link>
               </li>
+              <li>
+                <Link href="/terms" className="hover:opacity-100 transition-opacity">
+                  წესები და პირობები
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy" className="hover:opacity-100 transition-opacity">
+                  კონფიდენციალურობის პოლიტიკა
+                </Link>
+              </li>
+              <li>
+                <Link href="/refund" className="hover:opacity-100 transition-opacity">
+                  თანხის დაბრუნება
+                </Link>
+              </li>
+              <li>
+                <Link href="/cookies" className="hover:opacity-100 transition-opacity">
+                  Cookie პოლიტიკა
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

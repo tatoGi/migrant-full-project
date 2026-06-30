@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import TermsAcceptanceCheckbox from "@/components/TermsAcceptanceCheckbox";
 
 const DASHBOARD_ROUTES: Record<string, string> = {
   client: "/client/saved",
@@ -39,6 +40,7 @@ export const AuthModal = ({ open, defaultTab = "login", onClose }: AuthModalProp
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [regSubmitting, setRegSubmitting] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const { signIn, signUp } = useAuth();
   const router = useRouter();
@@ -58,6 +60,12 @@ export const AuthModal = ({ open, defaultTab = "login", onClose }: AuthModalProp
 
   const handleRegister = async (e: { preventDefault(): void }) => {
     e.preventDefault();
+
+    if (!acceptedTerms) {
+      toast.error("გთხოვთ, დაეთანხმოთ წესებსა და პოლიტიკას.");
+      return;
+    }
+
     setRegSubmitting(true);
     const { error, role: newRole } = await signUp(regEmail, regPassword, fullName, role);
     setRegSubmitting(false);
@@ -150,7 +158,13 @@ export const AuthModal = ({ open, defaultTab = "login", onClose }: AuthModalProp
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input type="password" placeholder="პაროლი" className="pl-10" value={regPassword} onChange={e => setRegPassword(e.target.value)} required minLength={6} />
               </div>
-              <Button className="w-full gap-2" size="lg" disabled={regSubmitting}>
+              <TermsAcceptanceCheckbox
+                id="terms-modal"
+                checked={acceptedTerms}
+                onCheckedChange={setAcceptedTerms}
+              />
+
+              <Button className="w-full gap-2" size="lg" disabled={regSubmitting || !acceptedTerms}>
                 {regSubmitting ? "იქმნება…" : "ანგარიშის შექმნა"} <ArrowRight className="h-4 w-4" />
               </Button>
             </form>
