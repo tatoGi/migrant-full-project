@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\SupportChatController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ClientSavedListingController;
+use App\Http\Controllers\Api\FlittWebhookController;
 use App\Http\Controllers\Api\ListingController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProviderSettingsController;
@@ -20,6 +21,7 @@ Route::get('categories', [CategoryController::class, 'index']);
 Route::get('listings', [PublicListingController::class, 'index']);
 Route::get('listings/vip', [ListingController::class, 'vip']);
 Route::get('listings/{slug}', [PublicListingController::class, 'show']);
+Route::post('webhooks/flitt', [FlittWebhookController::class, 'handle']);
 
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
