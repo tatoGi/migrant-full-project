@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\FlittWebhookController;
 use App\Http\Controllers\Api\ListingController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProviderSettingsController;
+use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\PublicListingController;
 use App\Http\Controllers\Api\UploadController;
 use Illuminate\Support\Facades\Route;
@@ -56,6 +57,8 @@ Route::middleware(['auth:sanctum', 'role:provider'])->prefix('provider')->group(
     Route::delete('listings/{id}', [ListingController::class, 'destroy']);
     Route::post('listings/{id}/photos', [ListingController::class, 'uploadPhoto']);
     Route::delete('listings/{id}/photos/{uuid}', [ListingController::class, 'removePhoto']);
+    Route::post('listings/{id}/checkout', [SubscriptionController::class, 'checkout']);
+    Route::post('listings/{id}/subscription/cancel', [SubscriptionController::class, 'cancel']);
 
     Route::get('settings', [ProviderSettingsController::class, 'show']);
     Route::put('settings', [ProviderSettingsController::class, 'update']);
