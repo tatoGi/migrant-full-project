@@ -58,6 +58,7 @@ class ListingService
             'price_type' => $data->price_type,
             'price_value' => $data->price_value,
             'booking_mode' => $data->booking_mode,
+            'status' => 'pending_payment',
         ]);
 
         // Move temp photos into MediaLibrary: temp/{token}.jpg → media collection

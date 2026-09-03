@@ -10,6 +10,7 @@ use App\Http\Requests\Listing\UpdateListingRequest;
 use App\Http\Resources\ListingResource;
 use App\Repositories\Contracts\ListingRepositoryInterface;
 use App\Services\ListingService;
+use App\Services\SubscriptionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -18,6 +19,7 @@ class ListingController extends Controller
     public function __construct(
         private readonly ListingService $listingService,
         private readonly ListingRepositoryInterface $listingRepository,
+        private readonly SubscriptionService $subscriptionService,
     ) {}
 
     // GET /api/listings/vip
@@ -58,7 +60,12 @@ class ListingController extends Controller
             StoreListingData::from($request->validated())
         );
 
-        return response()->json(new ListingResource($listing), 201);
+        $payment = $this->subscriptionService->createForListing($listing);
+
+        return response()->json([
+            'listing' => new ListingResource($listing),
+            'checkout_url' => $payment['checkout_url'],
+        ], 201);
     }
 
     // PUT /api/provider/listings/{id}
