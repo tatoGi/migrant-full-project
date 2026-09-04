@@ -16,7 +16,7 @@ return new class extends Migration
             $table->json('payload');
             $table->timestamps();
 
-            $table->unique(['subscription_id', 'flitt_payment_id', 'order_status']);
+            $table->unique(['subscription_id', 'flitt_payment_id', 'order_status'], 'subscription_events_sub_payment_status_unique');
         });
     }
 
