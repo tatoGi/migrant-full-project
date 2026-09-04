@@ -6,7 +6,8 @@
       "Bash(curl -s \"http://localhost:8082/api/listings\")",
       "WebFetch(domain:docs.flitt.com)",
       "mcp__plugin_context7_context7__resolve-library-id",
-      "mcp__plugin_context7_context7__query-docs"
+      "mcp__plugin_context7_context7__query-docs",
+      "Bash(git status *)"
     ]
   }
 }
