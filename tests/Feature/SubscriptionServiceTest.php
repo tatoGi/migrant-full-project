@@ -65,7 +65,7 @@ class SubscriptionServiceTest extends TestCase
         $this->assertSame('pending', $result['subscription']->status);
 
         Http::assertSent(function ($request) {
-            $body = $request->data()['request'];
+            $body = json_decode(base64_decode($request->data()['request']['data']), true)['order'];
 
             return $body['recurring_data']['trial_period'] === 'month'
                 && $body['recurring_data']['trial_quantity'] === 1
@@ -87,7 +87,7 @@ class SubscriptionServiceTest extends TestCase
         $this->assertSame(2000, $result['subscription']->amount);
 
         Http::assertSent(function ($request) {
-            $body = $request->data()['request'];
+            $body = json_decode(base64_decode($request->data()['request']['data']), true)['order'];
 
             return ! isset($body['recurring_data']['trial_period']) && $body['amount'] === 2000;
         });

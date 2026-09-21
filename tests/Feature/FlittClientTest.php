@@ -44,6 +44,40 @@ class FlittClientTest extends TestCase
         });
     }
 
+    public function test_create_order_with_recurring_data_uses_protocol_2_and_decodes_response(): void
+    {
+        $responseData = base64_encode(json_encode(['order' => ['checkout_url' => 'https://pay.flitt.com/x']]));
+        Http::fake(['pay.flitt.com/*' => Http::response(['response' => ['data' => $responseData, 'signature' => 's']])]);
+
+        $result = $this->client()->createOrder([
+            'order_id' => 'o1',
+            'amount' => 500,
+            'recurring_data' => ['amount' => 500, 'period' => 'month', 'every' => 1],
+        ]);
+
+        $this->assertSame('https://pay.flitt.com/x', $result['checkout_url']);
+
+        Http::assertSent(function ($request) {
+            $body = $request->data()['request'];
+            $order = json_decode(base64_decode($body['data']), true)['order'];
+
+            return $body['version'] === '2.0'
+                && $body['signature'] === sha1('test|'.$body['data'])
+                && $order['merchant_id'] === 1549901
+                && $order['recurring_data']['period'] === 'month';
+        });
+    }
+
+    public function test_decode_callback_verifies_protocol_2_payload(): void
+    {
+        $data = base64_encode(json_encode(['order' => ['order_id' => 'o1', 'order_status' => 'approved']]));
+
+        $decoded = $this->client()->decodeCallback(['data' => $data, 'signature' => sha1('test|'.$data)]);
+
+        $this->assertSame('approved', $decoded['order_status']);
+        $this->assertNull($this->client()->decodeCallback(['data' => $data, 'signature' => 'bad']));
+    }
+
     public function test_cancel_subscription_sends_stop_action_to_subscription_endpoint(): void
     {
         Http::fake([

@@ -21,11 +21,54 @@ class FlittClient
 
     public function createOrder(array $params): array
     {
+        // Flitt accepts nested recurring_data only via API protocol 2.0 (base64 order + signature).
+        if (isset($params['recurring_data'])) {
+            return $this->createOrderV2($params);
+        }
+
         $response = Http::asJson()->post($this->baseUrl.'checkout/url', [
             'request' => $this->signedRequest($params),
         ]);
 
         return $response->json('response', []);
+    }
+
+    /**
+     * Returns the payload of a verified callback (flat v1.0 or base64 v2.0), or null if the signature is invalid.
+     */
+    public function decodeCallback(array $payload): ?array
+    {
+        if (isset($payload['data'], $payload['signature']) && ! isset($payload['order_id'])) {
+            if (! hash_equals(sha1($this->paymentKey.'|'.$payload['data']), (string) $payload['signature'])) {
+                return null;
+            }
+
+            $order = json_decode(base64_decode((string) $payload['data']), true)['order'] ?? null;
+
+            return is_array($order) ? $order : null;
+        }
+
+        return $this->verifySignature($payload) ? $payload : null;
+    }
+
+    private function createOrderV2(array $params): array
+    {
+        $params['merchant_id'] = $this->merchantId;
+        $data = base64_encode(json_encode(['order' => $params]));
+
+        $response = Http::asJson()->post($this->baseUrl.'checkout/url', [
+            'request' => [
+                'version' => '2.0',
+                'data' => $data,
+                'signature' => sha1($this->paymentKey.'|'.$data),
+            ],
+        ])->json('response', []);
+
+        if (isset($response['data'])) {
+            return json_decode(base64_decode((string) $response['data']), true)['order'] ?? [];
+        }
+
+        return $response;
     }
 
     public function cancelSubscription(string $orderId): array

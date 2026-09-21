@@ -17,9 +17,9 @@ class FlittWebhookController extends Controller
 
     public function handle(Request $request): JsonResponse
     {
-        $payload = $request->input('response', $request->all());
+        $payload = $this->flitt->decodeCallback($request->input('response', $request->all()));
 
-        if (! $this->flitt->verifySignature($payload)) {
+        if ($payload === null) {
             return response()->json(['message' => 'invalid signature'], 401);
         }
 

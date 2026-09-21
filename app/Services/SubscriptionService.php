@@ -125,6 +125,7 @@ class SubscriptionService
             'amount' => $amount,
             'period' => 'month',
             'every' => 1,
+            'end_time' => now()->addYears(10)->format('Y-m-d'),
         ];
 
         if ($plan === 'standard') {
