@@ -6,6 +6,7 @@ use App\Clients\FlittClient;
 use App\Models\Listing;
 use App\Models\Subscription;
 use App\Repositories\Contracts\SubscriptionRepositoryInterface;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class SubscriptionService
@@ -139,8 +140,12 @@ class SubscriptionService
             'subscription' => 'Y',
             'recurring_data' => $recurringData,
             'server_callback_url' => rtrim(config('app.url'), '/').'/api/webhooks/flitt',
-            'response_url' => rtrim(config('app.frontend_url'), '/')."/provider/listings/{$listing->id}",
+            'response_url' => rtrim(config('app.frontend_url'), '/').'/provider/dashboard',
         ]);
+
+        if (empty($response['checkout_url'])) {
+            Log::error('Flitt checkout URL was not returned', ['listing_id' => $listing->id, 'response' => $response]);
+        }
 
         return $response['checkout_url'] ?? '';
     }

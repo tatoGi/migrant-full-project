@@ -165,7 +165,14 @@ const CreateListingPage = () => {
       booking_mode:  form.booking_mode,
       photos:        photos.map(p => p.token),
     }),
-    onSuccess: () => { toast.success("განცხადება გამოქვეყნდა!"); router.push("/provider/dashboard"); },
+    onSuccess: ({ data }) => {
+      if (data?.checkout_url) {
+        window.location.href = data.checkout_url;
+        return;
+      }
+      toast.error("გადახდის გვერდის გახსნა ვერ მოხერხდა. სცადეთ თავიდან ან დაგვიკავშირდით.");
+      router.push("/provider/dashboard");
+    },
     onError: (err: unknown) => {
       const errors = (err as { response?: { data?: { errors?: Record<string, string[]> } } })?.response?.data?.errors;
       toast.error(errors ? (Object.values(errors)[0] as string[])[0] : "შეცდომა. სცადეთ თავიდან.");
