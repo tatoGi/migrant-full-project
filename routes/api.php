@@ -1,18 +1,19 @@
 <?php
 
 use App\Http\Controllers\Api\Admin\AdminListingController;
+use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\Admin\BannerController;
 use App\Http\Controllers\Api\Admin\SupportMessageController;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\SupportChatController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ClientSavedListingController;
 use App\Http\Controllers\Api\FlittWebhookController;
 use App\Http\Controllers\Api\ListingController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProviderSettingsController;
-use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\PublicListingController;
+use App\Http\Controllers\Api\SubscriptionController;
+use App\Http\Controllers\Api\SupportChatController;
 use App\Http\Controllers\Api\UploadController;
 use Illuminate\Support\Facades\Route;
 
@@ -87,4 +88,10 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::post('site-settings', [BannerController::class, 'update']);
     Route::delete('site-settings/banner-image', [BannerController::class, 'deleteImage']);
     Route::delete('site-settings/logo', [BannerController::class, 'deleteLogo']);
+
+    // Users
+    Route::get('users', [AdminUserController::class, 'index']);
+    Route::post('users', [AdminUserController::class, 'store']);
+    Route::put('users/{id}', [AdminUserController::class, 'update']);
+    Route::delete('users/{id}', [AdminUserController::class, 'destroy']);
 });
